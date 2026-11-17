@@ -26,6 +26,25 @@
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  const initials = (name) => String(name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+  const hue = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+  const avatar = (name, key, size = '') => `<span class="avatar ${size}" style="--h:${hue(key || name)}" aria-hidden="true">${esc(initials(name))}</span>`;
+
+  const svg = (d) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICON = {
+    plus: svg('<path d="M12 5v14M5 12h14"/>'),
+    upload: svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/>'),
+    back: svg('<path d="m15 18-6-6 6-6"/>'),
+    share: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'),
+    trash: svg('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'),
+    file: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>'),
+    users: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'),
+    info: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
+    eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
+    arrow: svg('<path d="M5 12h14M12 5l7 7-7 7"/>'),
+    close: svg('<path d="M18 6 6 18M6 6l12 12"/>'),
+  };
+
   function toast(msg, isError = false) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -58,7 +77,7 @@
 
   function renderUserbox() {
     if (!me) { userbox.innerHTML = ''; return; }
-    userbox.innerHTML = `<span>Signed in as <strong>${esc(me.name)}</strong></span>
+    userbox.innerHTML = `${avatar(me.name, me.email, 'sm')}<span class="who-name">Signed in as <strong>${esc(me.name)}</strong></span>
       <button class="btn" id="logoutBtn">Switch user</button>`;
     document.getElementById('logoutBtn').onclick = async () => {
       await api('/api/logout', { method: 'POST' });
@@ -71,11 +90,14 @@
   // ---------- views ----------
   async function renderLogin() {
     const users = await api('/api/users');
-    view.innerHTML = `<div class="login">
-      <h1>Sign in</h1>
-      <p>Demo accounts — pick one. Log in as a second user to see sharing in action.</p>
-      ${users.map((u) => `<button class="user-option" data-email="${esc(u.email)}"><strong>${esc(u.name)}</strong><small>${esc(u.email)}</small></button>`).join('')}
-    </div>`;
+    view.innerHTML = `<div class="login-wrap"><div class="login">
+      <span class="logo">A</span>
+      <h1>Welcome to Ajaia Docs</h1>
+      <p>Pick a demo account to sign in. Switch to a second user to see sharing in action.</p>
+      ${users.map((u) => `<button class="user-option" data-email="${esc(u.email)}">${avatar(u.name, u.email, 'lg')}
+        <span class="u-meta"><strong>${esc(u.name)}</strong><small>${esc(u.email)}</small></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}
+      <p class="login-foot">Demo only: no password needed.</p>
+    </div></div>`;
     view.querySelectorAll('.user-option').forEach((b) => {
       b.onclick = async () => {
         me = await api('/api/login', { method: 'POST', json: { email: b.dataset.email } });
@@ -89,25 +111,31 @@
       ? `Owned by ${esc(d.owner_name)} · edited ${timeAgo(d.updated_at)}`
       : `Edited ${timeAgo(d.updated_at)}`;
     const badge = shared ? `<span class="badge ${d.role}">${d.role === 'editor' ? 'Can edit' : 'View only'}</span>` : `<span class="badge owner">Owner</span>`;
-    return `<li><a href="#/doc/${esc(d.id)}"><span class="doc-icon"></span>
-      <span class="doc-meta"><div class="doc-title">${esc(d.title)}</div><div class="doc-sub">${sub}</div></span>${badge}</a></li>`;
+    return `<li><a href="#/doc/${esc(d.id)}">
+      <span class="doc-thumb"><span class="doc-page"><i></i><i></i><i></i><i></i><i></i></span></span>
+      <span class="doc-card-body"><span class="doc-meta"><div class="doc-title">${esc(d.title)}</div><div class="doc-sub">${sub}</div></span>${badge}</span></a></li>`;
   }
+
+  const emptyState = (icon, title, text) => `<div class="empty"><span class="empty-ico">${icon}</span><strong>${title}</strong><span>${text}</span></div>`;
 
   async function renderHome() {
     const { owned, shared } = await api('/api/documents');
     view.innerHTML = `
       <div class="home-head">
-        <h1>Documents</h1>
+        <div>
+          <h1>Documents</h1>
+          <p class="greet">Hi ${esc(me.name.split(' ')[0])}, here's everything you can open.</p>
+        </div>
         <div class="actions">
-          <button class="btn" id="importBtn">⬆ Import file</button>
-          <button class="btn primary" id="newBtn">+ New document</button>
+          <button class="btn" id="importBtn">${ICON.upload} Import file</button>
+          <button class="btn primary" id="newBtn">${ICON.plus} New document</button>
         </div>
       </div>
-      <p class="hint">Import supports <strong>.txt, .md and .docx</strong> (max 2 MB) — the file becomes a new editable document.</p>
-      <h2 class="section-title">My documents (${owned.length})</h2>
-      ${owned.length ? `<ul class="doc-list">${owned.map((d) => docRow(d, false)).join('')}</ul>` : `<div class="empty">No documents yet. Create one or import a file.</div>`}
-      <h2 class="section-title">Shared with me (${shared.length})</h2>
-      ${shared.length ? `<ul class="doc-list">${shared.map((d) => docRow(d, true)).join('')}</ul>` : `<div class="empty">Nothing has been shared with you yet.</div>`}
+      <p class="hint">${ICON.info}<span>Import supports <strong>.txt, .md and .docx</strong> (max 2 MB). The file becomes a new editable document.</span></p>
+      <h2 class="section-title">My documents <span class="count">${owned.length}</span></h2>
+      ${owned.length ? `<ul class="doc-list">${owned.map((d) => docRow(d, false)).join('')}</ul>` : emptyState(ICON.file, 'No documents yet', 'Create a new document or import a file to get started.')}
+      <h2 class="section-title">Shared with me <span class="count">${shared.length}</span></h2>
+      ${shared.length ? `<ul class="doc-list">${shared.map((d) => docRow(d, true)).join('')}</ul>` : emptyState(ICON.users, 'Nothing shared yet', 'Documents other people share with you will show up here.')}
     `;
     document.getElementById('newBtn').onclick = async () => {
       const doc = await api('/api/documents', { method: 'POST', json: {} });
@@ -137,15 +165,15 @@
 
     view.innerHTML = `
       <div class="editor-head">
-        <a href="#/" class="btn" aria-label="Back">←</a>
+        <a href="#/" class="btn ghost" aria-label="Back to documents" title="Back to documents">${ICON.back}</a>
         <input id="title" class="title-input" maxlength="120" value="${esc(doc.title)}" ${canEdit ? '' : 'readonly'} aria-label="Document title" />
         <span id="saveStatus" class="save-status">${canEdit ? 'Saved' : ''}</span>
-        ${canEdit ? `<button class="btn" id="insertBtn" title="Insert .txt, .md or .docx content at the cursor">⬆ Insert file</button>` : ''}
-        ${isOwner ? `<button class="btn primary" id="shareBtn">Share</button>` : ''}
-        ${isOwner ? `<button class="btn danger" id="deleteBtn">Delete</button>` : ''}
+        ${canEdit ? `<button class="btn" id="insertBtn" title="Insert .txt, .md or .docx content at the cursor">${ICON.upload}<span class="lbl">Insert file</span></button>` : ''}
+        ${isOwner ? `<button class="btn primary" id="shareBtn">${ICON.share}<span class="lbl">Share</span></button>` : ''}
+        ${isOwner ? `<button class="btn danger" id="deleteBtn" title="Delete document">${ICON.trash}<span class="lbl">Delete</span></button>` : ''}
       </div>
-      <div class="doc-info"><span class="badge ${doc.role}">${roleLabel}</span> Owner: ${esc(doc.owner_name)}</div>
-      ${canEdit ? '' : `<div class="readonly-banner">You have view-only access. Ask ${esc(doc.owner_name)} for edit access.</div>`}
+      <div class="doc-info"><span class="badge ${doc.role}">${roleLabel}</span> ${avatar(doc.owner_name, doc.owner_name, 'sm')} Owned by <strong>${esc(doc.owner_name)}</strong></div>
+      ${canEdit ? '' : `<div class="readonly-banner">${ICON.eye}<span>You have view-only access. Ask ${esc(doc.owner_name)} for edit access.</span></div>`}
       <div class="editor-shell"><div id="editor"></div></div>
     `;
 
@@ -169,11 +197,11 @@
     let timer = null;
     let inFlight = Promise.resolve();
 
-    const setStatus = (text, err = false) => { status.textContent = text; status.className = 'save-status' + (err ? ' error' : ''); };
+    const setStatus = (text, err = false, state = '') => { status.textContent = text; status.className = 'save-status' + (err ? ' error' : state ? ` ${state}` : ''); };
 
     function schedule(field, value) {
       pending[field] = value;
-      setStatus('Unsaved…');
+      setStatus('Unsaved…', false, 'pending');
       clearTimeout(timer);
       timer = setTimeout(flush, 700);
     }
@@ -183,7 +211,7 @@
       if (!Object.keys(pending).length) return inFlight;
       const body = { ...pending };
       for (const k of Object.keys(pending)) delete pending[k];
-      setStatus('Saving…');
+      setStatus('Saving…', false, 'saving');
       inFlight = inFlight.then(() =>
         api(`/api/documents/${encodeURIComponent(id)}`, { method: 'PATCH', json: body })
           .then(() => { if (!Object.keys(pending).length) setStatus('Saved'); })
@@ -247,10 +275,10 @@
 
     async function refresh() {
       const shares = await api(`/api/documents/${encodeURIComponent(id)}/shares`);
-      list.innerHTML = `<li><div class="who"><strong>${esc(me.name)} (you)</strong><small>${esc(me.email)}</small></div><span class="badge owner">Owner</span></li>` +
-        shares.map((s) => `<li><div class="who"><strong>${esc(s.name)}</strong><small>${esc(s.email)}</small></div>
-          <select data-email="${esc(s.email)}" class="role-select"><option value="editor" ${s.role === 'editor' ? 'selected' : ''}>Can edit</option><option value="viewer" ${s.role === 'viewer' ? 'selected' : ''}>Can view</option></select>
-          <button class="icon-btn" data-remove="${esc(s.user_id)}" title="Remove access">✕</button></li>`).join('');
+      list.innerHTML = `<li>${avatar(me.name, me.email)}<div class="who"><strong>${esc(me.name)} (you)</strong><small>${esc(me.email)}</small></div><span class="badge owner">Owner</span></li>` +
+        shares.map((s) => `<li>${avatar(s.name, s.email)}<div class="who"><strong>${esc(s.name)}</strong><small>${esc(s.email)}</small></div>
+          <select data-email="${esc(s.email)}" class="role-select" aria-label="Role for ${esc(s.name)}"><option value="editor" ${s.role === 'editor' ? 'selected' : ''}>Can edit</option><option value="viewer" ${s.role === 'viewer' ? 'selected' : ''}>Can view</option></select>
+          <button class="icon-btn" data-remove="${esc(s.user_id)}" title="Remove access" aria-label="Remove access for ${esc(s.name)}">${ICON.close}</button></li>`).join('');
       list.querySelectorAll('.role-select').forEach((sel) => {
         sel.onchange = async () => {
           await api(`/api/documents/${encodeURIComponent(id)}/shares`, { method: 'PUT', json: { email: sel.dataset.email, role: sel.value } });
