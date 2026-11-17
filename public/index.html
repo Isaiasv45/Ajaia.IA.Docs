@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ajaia Docs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="brand"><span class="logo">A</span> Ajaia Docs</a>
+    <div id="userbox" class="userbox"></div>
+  </header>
+
+  <main id="view"></main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Share dialog -->
+  <dialog id="shareDialog">
+    <form method="dialog" class="dialog-head">
+      <h2>Share document</h2>
+      <button class="icon-btn" aria-label="Close">✕</button>
+    </form>
+    <form id="shareForm" class="share-form">
+      <input id="shareEmail" type="email" placeholder="Email, e.g. bob@ajaia.test" required list="userEmails" />
+      <datalist id="userEmails"></datalist>
+      <select id="shareRole">
+        <option value="editor">Can edit</option>
+        <option value="viewer">Can view</option>
+      </select>
+      <button class="btn primary" type="submit">Share</button>
+    </form>
+    <p id="shareError" class="error" hidden></p>
+    <h3 class="muted-h">People with access</h3>
+    <ul id="shareList" class="share-list"></ul>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
