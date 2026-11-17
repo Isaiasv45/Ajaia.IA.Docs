@@ -2,7 +2,7 @@
 
 A lightweight collaborative document editor. You can create, format, import, share and reopen documents.
 
-**Live demo:** <PASTE RENDER URL> (free tier, so the first load after idle can take ~30–50 s)
+**Live demo:** https://ajaia-docs-hrva.onrender.com (free tier, so the first load after idle can take ~30–50 s)
 
 ## Demo accounts (no password: pick one on the sign-in screen, use "Switch user" to change)
 

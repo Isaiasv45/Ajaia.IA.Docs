@@ -1,6 +1,6 @@
 # Submission: Ajaia Docs
 
-- **Live URL:** <PASTE RENDER URL>
+- **Live URL:** https://ajaia-docs-hrva.onrender.com
 - **Video:** see `VIDEO_URL.txt`
 - **Test accounts:** no password, pick on the sign-in screen
   - alice@ajaia.test (owner of the seeded doc)
