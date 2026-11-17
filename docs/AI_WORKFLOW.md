@@ -1,25 +1,41 @@
 # AI workflow note
 
 ## Tools
-- **Claude Code** (Anthropic), used in VS Code as a pair-programmer for scaffolding, code, tests and docs.
-- I set the scope, the priorities and the cuts, and I reviewed and tested the output myself.
+- **Claude Code** (Anthropic) inside VS Code, used as a coding copilot.
+- I owned the product decisions, the review, the UI polish, the deployment and the testing. The AI generated most of the first draft of the code, tests and docs.
+
+## How I split the work
+| Me | AI copilot |
+|---|---|
+| Scoped the slice: complete core loop first, explicit cuts, one stretch item (viewer/editor roles) | Proposed the stack and scaffolded the project |
+| Set constraints: free hosting, zero-friction setup, keep the solution lean and explainable | Wrote the first draft of routes, schema, editor integration and tests |
+| Reviewed the code, especially access control and how content is stored and rendered | Drafted the README and notes, which I edited |
+| Polished the UI: Inter typography, SVG icons instead of text glyphs, spacing and visual details | Fixed issues I flagged |
+| Created the GitHub repo and deployed to Render via the Blueprint (`render.yaml`), then verified the live build | |
+| Tested every flow manually, locally and in production, as all three users | |
 
 ## Where AI materially sped things up
-- Boilerplate: the Express routes, the SQLite schema, the Quill toolbar setup and the CSS.
-- Writing the API test suite. It covers auth, persistence, validation, sharing roles and import.
-- Drafting the README and notes, which I then edited.
+- Boilerplate: the Express routes, the SQLite schema, the Quill toolbar and the base CSS. That's hours of typing down to minutes.
+- The API test suite. It covers auth, persistence, validation, sharing roles and import.
+- First drafts of the documentation.
 
-## What I changed or rejected
-- **Express 4 → Express 5.** The first draft used Express 4, which silently drops errors from async handlers (file import). Moving to Express 5 makes those errors reach the error middleware.
-- **Save-retry bug.** The generated retry logic for failed autosaves could overwrite newer edits with older ones. I rewrote it so the newest value always wins.
-- **Quill API.** One call used a non-public Quill API (`Quill.imports.delta`). I replaced it with the supported `Quill.import('delta')`.
-- **SQLite driver.** I rejected `better-sqlite3`, a native module that often fails to build on Windows or CI, in favour of Node's built-in `node:sqlite`.
-- **Permission errors.** I asked for 404 instead of 403 for documents a user can't access, so ids don't leak.
-- <ADD 1–2 THINGS YOU CHANGED YOURSELF WHILE TESTING>
+## What was changed or rejected
+- **Express 4 → Express 5.** The first draft used Express 4, which silently drops errors thrown in async handlers such as file import. Moving to Express 5 makes those errors reach the error middleware.
+- **Save-retry bug.** The generated retry logic for failed autosaves could overwrite newer edits with older ones. It was rewritten so the newest value always wins.
+- **Quill API.** A call to a non-public Quill API (`Quill.imports.delta`) was replaced with the supported `Quill.import('delta')`.
+- **SQLite driver.** `better-sqlite3`, a native module that often fails to build on Windows or CI, was rejected in favour of Node's built-in `node:sqlite`. Setup is just `npm install && npm start`, locally and on Render.
+- **Permission errors.** Documents a user can't access return 404 instead of 403, so document ids don't leak.
+- **Generated UI.** The look felt generic, so I reworked it by hand (typography, iconography, polish) to make it feel like a real product and not a template.
+- **Browser automation.** An attempt at automated browser screenshots didn't work in my environment. I dropped it and kept manual end-to-end testing, plus automated API tests, as the verification strategy.
 
 ## How I verified it
-- **Automated:** `npm test` runs 7 end-to-end API tests on an in-memory DB. They cover role enforcement (viewer can't edit, non-owner can't share or delete, revoked user loses access), formatting surviving a reload, input validation, file import, and script stripping.
-- **Manual:**
-  - Ran the full flow in the browser as all three users: create, format, rename, reload, import `.md`/`.docx`/`.txt`, share as editor and viewer, revoke.
-  - Checked the error states: an unsupported file, an empty title, sharing with an unknown email.
-- **Code review:** I read every generated file before committing, focusing on the access checks and on what gets stored and rendered.
+- **Automated:** `npm test` runs 7 end-to-end API tests against an in-memory DB.
+  - Role enforcement: a viewer can't edit, a non-owner can't share or delete, a revoked user loses access.
+  - Formatting survives a reload.
+  - Input validation.
+  - File import, including script stripping.
+- **Manual, local and production:**
+  - The full flow as Alice, Bob and Carol: create, format, rename, reload, import `.md`/`.txt`/`.docx`, share as editor and viewer, change role, revoke.
+  - Error states: an unsupported file (e.g. `.png`), an empty title, sharing with an unknown email.
+- **Deployment:** after the Render deploy I checked the live API, the login cookie and the seeded sharing data on the production URL.
+- **Review:** I read the generated code before committing, focusing on the access checks, input validation and what gets stored and rendered.

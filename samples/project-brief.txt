@@ -1,0 +1,6 @@
+Project Brief
+
+This is a plain text file imported into Ajaia Docs.
+Each blank line starts a new paragraph.
+
+Goal: help teams move faster on shared work.

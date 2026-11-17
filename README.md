@@ -17,7 +17,7 @@ A lightweight collaborative document editor. You can create, format, import, sha
 ## Features
 - **Documents:** create, rename, edit, delete (owner only). Autosave with a *Saving… / Saved / Not saved* indicator.
 - **Rich text:** headings H1–H3, bold, italic, underline, strikethrough, bulleted and numbered lists, quotes, links.
-- **File upload:** supports **.txt, .md and .docx only**, max 2 MB.
+- **File upload** (sample files in `samples/`): supports **.txt, .md and .docx only**, max 2 MB.
   - *Import file* (home) creates a new editable document from the file.
   - *Insert file* (editor) inserts the file's content into the current draft.
   - Other file types are rejected with a clear message.
