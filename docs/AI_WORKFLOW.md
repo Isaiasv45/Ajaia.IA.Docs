@@ -28,6 +28,7 @@
 - **Generated UI.** The look felt generic, so I reworked it by hand (typography, iconography, polish) to make it feel like a real product and not a template.
 - **Browser automation.** An attempt at automated browser screenshots didn't work in my environment. I dropped it and kept manual end-to-end testing, plus automated API tests, as the verification strategy.
 - **Bugs caught in end-to-end browser testing.** Driving the real UI in a browser surfaced two visual regressions from the redesign that unit tests could not catch. An SVG icon had no explicit size and rendered full-width on the home screen, and the editor showed a browser focus outline around the page. We traced both to the CSS, fixed them, and re-verified. This is why I don't treat green API tests as "done".
+- **Upload bug caught on the live deployment.** Choosing a file in the browser did nothing, even though the import API worked when I called it directly. I isolated it by uploading through the API, which succeeded, so the backend was fine. The cause was the file input being created detached from the DOM, where Chromium doesn't reliably fire `change`. Fixed by attaching it to the page.
 
 ## How I verified it
 - **Automated:** `npm test` runs 7 end-to-end API tests against an in-memory DB.
