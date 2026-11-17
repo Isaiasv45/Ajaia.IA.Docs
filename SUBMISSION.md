@@ -1,7 +1,7 @@
 # Submission: Ajaia Docs
 
 - **Live URL:** https://ajaia-docs-hrva.onrender.com
-- **Video:** see `VIDEO_URL.txt`
+- **Video:** https://www.loom.com/share/b5f549aa542740d6b354221c0e04a0ac
 - **Test accounts:** no password, pick on the sign-in screen
   - alice@ajaia.test (owner of the seeded doc)
   - bob@ajaia.test (editor)

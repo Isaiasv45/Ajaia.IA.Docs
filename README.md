@@ -4,6 +4,8 @@ A lightweight collaborative document editor. You can create, format, import, sha
 
 **Live demo:** https://ajaia-docs-hrva.onrender.com (free tier, so the first load after idle can take ~30–50 s)
 
+**Walkthrough video:** https://www.loom.com/share/b5f549aa542740d6b354221c0e04a0ac
+
 ## Demo accounts (no password: pick one on the sign-in screen, use "Switch user" to change)
 
 | User | Email | In the seeded "Welcome" doc |
