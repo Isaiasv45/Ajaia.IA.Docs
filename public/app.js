@@ -63,8 +63,13 @@
 
   function pickFile() {
     return new Promise((resolve) => {
+      // Attach to the DOM: some browsers don't fire "change" on a detached file input.
       const input = Object.assign(document.createElement('input'), { type: 'file', accept: ACCEPT });
-      input.onchange = () => resolve(input.files[0] || null);
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      const done = (file) => { input.remove(); resolve(file); };
+      input.addEventListener('change', () => done(input.files[0] || null));
+      input.addEventListener('cancel', () => done(null));
       input.click();
     });
   }
